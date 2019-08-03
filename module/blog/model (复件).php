@@ -1,0 +1,198 @@
+<?php
+/**
+ * The model file of blog module of ZenTaoPHP.
+ *
+ * The author disclaims copyright to this source code.  In place of
+ * a legal notice, here is a blessing:
+ * 
+ *  May you do good and not evil.
+ *  May you find forgiveness for yourself and forgive others.
+ *  May you share freely, never taking more than you give.
+ */
+?>
+<?php
+class blogModel extends model
+{
+    /**
+     * Get article lists.
+     * 
+     * @access public
+     * @return array
+     */
+    public function getList($pager = null)
+    {
+        return $this->dao->select('*')->from('v_blog')->orderBy('date desc')->page($pager)->fetchAll();
+    }
+
+    /**
+     * Get an article.
+     * 
+     * @param  int    $id 
+     * @access public
+     * @return object
+     */
+    public function getById($id)
+    {
+        return $this->dao->findById($id)->from('v_blog')->fetch();
+    }
+
+    /**
+     * Create an article.
+     * 
+     * @access public
+     * @return void
+     */
+    public function create()
+    {
+        //开始一个事务
+        //$article = fixer::input('post')->remove('tag_id')->add('date', date('Y-m-d H:i:s'))->get();
+        //$article = fixer::input('post')->specialchars('title, content,cat_code,tag_id')->remove('tag_id')->add('date', date('Y-m-d H:i:s'))->get();
+$article = fixer::input('post')->specialchars('title, cat_code,tag_id')->remove('tag_id')->add('date', date('Y-m-d H:i:s'))->get();
+$article->content=htmlspecialchars($_POST['content']);
+        $this->dao->begin();
+        $this->dao->insert('blog')->data($article)->autoCheck()->batchCheck('title,content,cat_code', 'notempty')->exec();
+        
+        $lastBlogId=$this->dao->lastInsertID();
+
+        $tag_ids=fixer::input('post')->specialchars('title, content,cat_code,tag_id')->get('tag_id') ;       
+        foreach (  $tag_ids as $eachTag){
+            $data          = new stdclass();
+            $data->blog_id=$lastBlogId;
+            $data->tag_id=(int)$eachTag+1;  
+            $data->date=date('Y-m-d H:i:s');
+           // echo  "<script>alert('".$data->tag_id."')</script>";
+            $this->dao->insert('blog_tag_relation')->data($data)->autoCheck()->batchCheck('blog_id,tag_id', 'notempty')->exec();    
+        }
+        
+        $this->dao->commit();
+        return $lastBlogId;
+    }
+
+    /**
+     * Update an article.
+     * 
+     * @param  int    $articleID 
+     * @access public
+     * @return void
+     */
+    public function update($articleID)
+    {
+        //开始一个事务
+        //$article = fixer::input('post')->remove('tag_id')->get();
+
+        //$article->content = html_entity_decode($article->content);
+        //var_dump($article);
+
+       // $article = fixer::input('post')->specialchars('title, content,cat_code,tag_id')->remove('tag_id')->get();
+        $article = fixer::input('post')->specialchars('title, cat_code,tag_id')->remove('tag_id')->get();
+$article->content = htmlspecialchars($_POST['content']);
+        $this->dao->begin();
+        $this->dao->update('blog')->data($article)->where('id')->eq($articleID)->exec();
+        
+        $this->dao->delete()->from('blog_tag_relation')->where('blog_id')->eq($articleID)->exec();
+        $tag_ids=fixer::input('post')->specialchars('title, content,cat_code,tag_id')->get('tag_id') ;
+        foreach (  $tag_ids as $eachTag){
+            $data          = new stdclass();
+            $data->blog_id=$articleID;
+            $data->tag_id=(int)$eachTag+1;
+            $data->date=date('Y-m-d H:i:s');
+            // echo  "<script>alert('".$data->tag_id."')</script>";
+            $this->dao->insert('blog_tag_relation')->data($data)->autoCheck()->batchCheck('blog_id,tag_id', 'notempty')->exec();
+        }
+        $this->dao->commit();
+    }
+
+    /**
+     * Delete an article.
+     * 
+     * @param  int     $id 
+     * @param  null    $table 
+     * @access public
+     * @return void
+     */
+    public function delete($id, $table = null)
+    {
+        $this->dao->begin();
+        $this->dao->delete()->from('blog')->where('id')->eq($id)->exec();
+        $this->dao->delete()->from('blog_tag_relation')->where('blog_id')->eq($id)->exec();
+        $this->dao->commit();
+    }
+    
+    /**
+     * Get all tags.
+     *
+     * @access public
+     * @return array
+     */
+    public function getTags()
+    {
+        return $this->dao->select('*')->from('blog_tag')->orderBy('id')->fetchAll();
+    }
+    
+    /**
+     * Get all tags name.
+     *
+     * @access public
+     * @return array
+     */
+    public function getTagNames()
+    {
+        return $this->dao->select('id,tag')->from('blog_tag')->orderBy('id')->fetchAll();
+    }
+    /**
+     * Get a tags name by tag_id.
+     *
+     * @access public
+     * @return array
+     */
+    public function getTagNameById($id)
+    {
+        return $this->dao->select('tag')->from('blog_tag')->where('id')->eq($id)->fetchAll();
+    }
+    /**
+     * Get tags name by blog_id.
+     *
+     * @access public
+     * @return array
+     */
+    public function getTagNamesByBlogId($blog_id)
+    {
+        //$sql_str="select tag_id from blog_tag_relation  where blog_id=".$blog_id." order by id";
+        return $this->dao->select('tag_id')->from('blog_tag_relation')->where('blog_id')->eq($blog_id)->orderBy('id')->fetchAll();
+        //return $this->dao->query($sql_str);
+    }
+    /**
+     * Get articles by tag.
+     *
+     * @access public
+     * @return array
+     */
+   
+    public function getByTag($tag_id,$pager = null)
+    {
+       $sql_str="select * from v_blog_by_tag  where tag_id=".$tag_id." order by date desc";
+        return $this->dao->query($sql_str);
+                
+    }
+    /**
+     * Get articles by category.
+     *
+     * @access public
+     * @return array
+     */
+    
+    public function getByCategory($cat_code,$pager = null)
+    {
+        if ($cat_code=="blog"||$cat_code=="index"){
+            $sql_str="select * from v_blog   order by date desc";
+        }else{
+            $sql_str="select * from v_blog  where cat_code='".$cat_code."' order by date desc";
+        }
+        return $this->dao->query($sql_str);
+        
+    }
+
+
+
+
+}

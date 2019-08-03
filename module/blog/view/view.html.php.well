@@ -1,0 +1,60 @@
+<?php
+/**
+ * The html template file of view method of blog module of ZenTaoPHP.
+ *
+ * The author disclaims copyright to this source code.  In place of
+ * a legal notice, here is a blessing:
+ * 
+ *  May you do good and not evil.
+ *  May you find forgiveness for yourself and forgive others.
+ *  May you share freely, never taking more than you give.
+ */
+?>
+<?php include '../../common/view/header.html.php';?>
+<div class='container'>
+  <div class='article'>
+    <h3><?php echo $article->title;?></h3>    
+    <!--<p><?php echo nl2br(strip_tags($article->content));?></p>-->
+    <hr/>
+   <!-- <div>
+    <?php echo htmlspecialchars_decode($article->content);?>
+    </div> -->
+    <div contenteditable="false">
+                <script id="content" name="content" type="text/plain">
+                  <?php echo htmlspecialchars_decode($article->content);?>
+                </script>       
+    </div>
+
+    <hr/>
+    <p>分类：<?php echo nl2br(strip_tags($article->category));?></p>
+        <?php      
+    echo "标签：  ";
+    foreach($selectTagIds as $key => $value)
+  					       {
+  					         //  echo "<script>console.log(".(int)$value->tag_id.")</script>";
+  					           $selectTagNames = $this->blog->getTagNameById((int)$value->tag_id);
+  					           $tmp=$selectTagNames[0];
+  					         //  echo "<script>console.log(".json_encode($selectTagNames).")</script>";
+  					           echo "<label>".$tmp->tag." 、 "."</label>";
+	 					       }
+    ?>  					       
+  </div>
+  <?php echo html::backButton();?>
+ <!-- <?php echo html::a(inlink('index'), $lang->blog->index, "class='btn'");?>-->
+</div>
+
+<script type="text/javascript">
+        
+       var ue = UE.getEditor('content',{readonly:true,
+        //initialFrameWidth:null,
+        initialFrameWidth :1200,//设置编辑器宽度
+        initialFrameHeight:500,//设置编辑器高度
+        toolbars: [[]]});       
+       
+        ue.scaleEnabled=false;
+        ue.wordCount=false;
+       // ue.enableAutoSave=false;
+
+      
+    </script>
+<?php include '../../common/view/footer.html.php';?>

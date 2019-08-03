@@ -1,0 +1,128 @@
+
+1.
+void reverse1(char *p)
+{
+	char b[100];
+	char *temp1;
+	temp1 = p;
+	char *temp2;
+	temp2 = b;
+	while(*temp1 != '\0') 
+	{
+		temp1++;
+		temp2++;
+	}
+	*temp2 = '\0';
+	temp2 = b;
+	while(*temp2 != '\0')
+		*temp2++ = *--temp1; 
+	temp2 = b;
+	printf("the transfer is: %s\n", b);
+
+}
+
+void transfer(int s,int n)
+{
+	int i = 0;
+	int temp;
+	char a[100];
+	while(s > 0)
+	{
+		a[i] = s%n;
+		temp = s%n;
+		
+		switch(temp) 
+		{
+		case 15:
+			a[i] = 'f'; 
+			break;
+
+		case 14:
+			a[i] = 'e';
+			break;
+
+		case 13:
+			a[i] = 'd'; 
+			break;
+
+		case 12:
+			a[i] = 'c'; 
+			break;
+
+        case 11:
+			a[i] = 'b';
+			break;
+		case 10:
+			a[i] = 'a';
+			break;
+
+		case 9:
+			a[i] = '9';
+			break;
+
+        case 8:
+			a[i] = '8';
+			break;
+
+        case 7:
+			a[i] = '7';
+			break;
+
+		case 6:
+			a[i] = '6';
+			break;
+
+		case 5:
+			a[i] = '5';
+			break;
+
+		case 4:
+			a[i] = '4';
+			break;
+
+		case 3:
+			a[i] = '3';
+			break;
+
+        case 2:
+			a[i] = '2';
+			break;
+
+		case 1:
+			a[i] = '1';
+			break;
+
+		case 0:
+			a[i] = '0';
+			break;
+		}
+		s /= n;
+        i++;
+	}
+	a[i] = '\0';
+	reverse1(a);
+}
+
+2.
+char *Convert(int num, char *Result)
+{
+	if(Result == 0)
+		return 0;
+	int  i = 0;
+	char Temp;
+	do{
+		if((num & 0xf) < 10) 
+			Result[i] = '0' + (num&0xf);
+		else Result[i] = 'A' + (num&0xf) - 10;
+		num >>= 4;
+		i++;
+	} while(num);
+	Result[i] = 0;
+	for(int j = 0; j < i/2; j++)
+	{
+		Temp = Result[i - j - 1];
+		Result[i - j - 1] = Result[j];
+		Result[j] = Temp;
+	}
+	return Result;
+}
